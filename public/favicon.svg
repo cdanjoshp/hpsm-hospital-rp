@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 120 120" role="img" aria-label="HPSM">
+  <defs>
+    <linearGradient id="light" x2="1" y2="1"><stop stop-color="#b7e9ff"/><stop offset=".42" stop-color="#2b9ae7"/><stop offset="1" stop-color="#07599e"/></linearGradient>
+    <linearGradient id="blue" x2=".85" y2="1"><stop stop-color="#5abaff"/><stop offset=".48" stop-color="#0878d1"/><stop offset="1" stop-color="#07509a"/></linearGradient>
+    <linearGradient id="navy" x2="1" y2="1"><stop stop-color="#2169a8"/><stop offset=".5" stop-color="#0b3972"/><stop offset="1" stop-color="#071e3e"/></linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="23" fill="#f4f8fc"/>
+  <g stroke="#8bd2ff" stroke-opacity=".18" stroke-width=".45" stroke-linejoin="round">
+    <path d="M60 60 43 36 60 5Z" fill="url(#light)"/>
+    <path d="M60 60 60 5 77 36Z" fill="url(#navy)"/>
+    <path d="M60 60 70 36 99 21Z" fill="url(#blue)"/>
+    <path d="M60 60 99 21 84 51Z" fill="url(#navy)"/>
+    <path d="M60 60 84 43 115 60Z" fill="url(#light)"/>
+    <path d="M60 60 115 60 84 77Z" fill="url(#blue)"/>
+    <path d="M60 60 84 69 99 99Z" fill="url(#navy)"/>
+    <path d="M60 60 99 99 70 84Z" fill="url(#blue)"/>
+    <path d="M60 60 77 84 60 115Z" fill="url(#light)"/>
+    <path d="M60 60 60 115 43 84Z" fill="url(#navy)"/>
+    <path d="M60 60 50 84 21 99Z" fill="url(#blue)"/>
+    <path d="M60 60 21 99 36 69Z" fill="url(#navy)"/>
+    <path d="M60 60 36 77 5 60Z" fill="url(#light)"/>
+    <path d="M60 60 5 60 36 43Z" fill="url(#blue)"/>
+    <path d="M60 60 36 51 21 21Z" fill="url(#navy)"/>
+    <path d="M60 60 21 21 50 36Z" fill="url(#blue)"/>
+  </g>
+</svg>

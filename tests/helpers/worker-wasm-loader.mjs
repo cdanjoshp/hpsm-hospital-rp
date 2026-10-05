@@ -1,0 +1,13 @@
+import { readFile } from "node:fs/promises";
+
+// Cloudflare imports .wasm as a precompiled WebAssembly.Module. Match that
+// binding in Node HTTP regressions while loading the real production binary.
+export async function load(url, context, nextLoad) {
+  if (!url.endsWith(".wasm")) return nextLoad(url, context);
+  const bytes = await readFile(new URL(url));
+  return {
+    format: "module",
+    shortCircuit: true,
+    source: `export default new WebAssembly.Module(Buffer.from(${JSON.stringify(bytes.toString("base64"))}, "base64"));`,
+  };
+}

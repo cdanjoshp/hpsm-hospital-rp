@@ -1,0 +1,92 @@
+import { adminHeaders } from "../../../lib/admin-data";
+import { getSupabaseAdminConfig } from "../../../lib/supabase-server";
+
+type PublicDocument = {
+  document_id: string;
+  exam_id: number;
+  file_size: number;
+  mime_type: "image/png";
+  pixel_height: number;
+  pixel_width: number;
+  render_version: "exam-document-png-v2" | "exam-document-png-v3" | "exam-document-png-v4" | "exam-document-png-v5" | "exam-document-png-v6";
+  storage_path: string;
+};
+
+export async function GET(_request: Request, context: { params: Promise<{ file: string }> }) {
+  return serveSharedDocument(await context.params, false);
+}
+
+export async function HEAD(_request: Request, context: { params: Promise<{ file: string }> }) {
+  return serveSharedDocument(await context.params, true);
+}
+
+async function serveSharedDocument(params: { file: string }, headOnly: boolean) {
+  const shareId = shareIdFromFilename(params.file);
+  if (!shareId) return notFound();
+
+  try {
+    const document = await resolveShare(shareId);
+    if (!document || document.mime_type !== "image/png" || !["exam-document-png-v2", "exam-document-png-v3", "exam-document-png-v4", "exam-document-png-v5", "exam-document-png-v6"].includes(document.render_version)) return notFound();
+    const stored = await fetchStoredDocument(document.storage_path);
+    if (!stored.ok || (!headOnly && !stored.body)) return notFound();
+    const headers = publicImageHeaders(document.file_size, stored.headers.get("content-length"));
+    if (headOnly) await stored.body?.cancel();
+    return new Response(headOnly ? null : stored.body, { headers, status: 200 });
+  } catch {
+    return notFound();
+  }
+}
+
+async function resolveShare(shareId: string) {
+  const { serviceRoleKey, url } = getSupabaseAdminConfig();
+  const response = await fetch(`${url}/rest/v1/rpc/resolve_clinical_exam_document_share`, {
+    body: JSON.stringify({ p_share_id: shareId }),
+    cache: "no-store",
+    headers: adminHeaders(serviceRoleKey),
+    method: "POST",
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!response.ok) return null;
+  return await response.json().catch(() => null) as PublicDocument | null;
+}
+
+async function fetchStoredDocument(path: string) {
+  const { serviceRoleKey, url } = getSupabaseAdminConfig();
+  return fetch(`${url}/storage/v1/object/clinical-exam-documents/${storagePath(path)}`, {
+    cache: "no-store",
+    headers: adminHeaders(serviceRoleKey),
+    method: "GET",
+    signal: AbortSignal.timeout(20_000),
+  });
+}
+
+function shareIdFromFilename(file: string) {
+  const match = /^([0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\.png$/i.exec(file);
+  return match?.[1]?.toLowerCase() ?? null;
+}
+
+function storagePath(path: string) {
+  return path.split("/").map(encodeURIComponent).join("/");
+}
+
+function publicImageHeaders(fileSize: number, storageLength: string | null) {
+  return {
+    "cache-control": "no-store, max-age=0",
+    "content-disposition": 'inline; filename="HPSM_documento_clinico.png"',
+    "content-length": storageLength ?? String(fileSize),
+    "content-type": "image/png",
+    pragma: "no-cache",
+    "referrer-policy": "no-referrer",
+    "x-content-type-options": "nosniff",
+    "x-robots-tag": "noindex, nofollow, noarchive",
+  };
+}
+
+function notFound() {
+  return new Response(null, { status: 404, headers: {
+    "cache-control": "no-store, max-age=0",
+    "content-type": "text/plain; charset=utf-8",
+    "x-content-type-options": "nosniff",
+    "x-robots-tag": "noindex, nofollow, noarchive",
+  } });
+}
